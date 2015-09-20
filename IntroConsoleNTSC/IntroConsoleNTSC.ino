@@ -93,14 +93,18 @@ int test_var = 0;
 
 void loop()
 {
+  int joy_2_knob_value = analogRead(A4);
   int joy_1_knob_value = analogRead(A5);
-  bool joy_1_button_1_value = digitalRead(2) == HIGH;
-  bool joy_1_button_2_value = digitalRead(4) == HIGH;
+
+  bool joy_1_button_1_value = digitalRead(0) == LOW;
+  bool joy_1_button_2_value = digitalRead(1) == LOW;
+  bool joy_2_button_1_value = digitalRead(2) == LOW;
+  bool joy_2_button_2_value = digitalRead(3) == LOW;
   TV.select_font(font6x8);
   TV.print("Piloto :");
   TV.println(test_var++);
   
-  TV.print("Potenciometro: ");
+  TV.print("Potenciometro: 1");
   TV.println(joy_1_knob_value);
 
   TV.print("Boton 1: ");
@@ -108,6 +112,15 @@ void loop()
 
   TV.print("Boton 2: ");
   TV.println(joy_1_button_2_value?"true":"false");
+
+  TV.print("Potenciometro 2: ");
+  TV.println(joy_2_knob_value);
+
+  TV.print("Boton 1: ");
+  TV.println(joy_2_button_1_value?"true":"false");
+
+  TV.print("Boton 2: ");
+  TV.println(joy_2_button_2_value?"true":"false");
   
   
   TV.delay_frame(1);
@@ -117,9 +130,13 @@ void loop()
 
 void setup_joysticks()
 {
+  pinMode(A4, INPUT);
   pinMode(A5, INPUT);
+  
+  pinMode(0, INPUT_PULLUP);
+  pinMode(1, INPUT_PULLUP);
   pinMode(2, INPUT_PULLUP);
-  pinMode(4, INPUT_PULLUP);
+  pinMode(3, INPUT_PULLUP);
 }
 
 void loop_old() {

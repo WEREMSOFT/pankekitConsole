@@ -161,7 +161,7 @@ void loop()
       
       // update paddle positions
       leftpaddle_y =  map(analogRead(A5), 0, 1024, 0, vres - PADDLE_HEIGHT);
-      rightpaddle_y = map(analogRead(A5), 0, 1024, 0, vres - PADDLE_HEIGHT);
+      rightpaddle_y = map(analogRead(A4), 0, 1024, 0, vres - PADDLE_HEIGHT);
       /*
       player1.update();
       if (player1.joy_up())
@@ -230,6 +230,9 @@ void loop()
 void setup_joysticks()
 {
   pinMode(A5, INPUT);
+  pinMode(A4, INPUT);
+  pinMode(0, INPUT);
+  pinMode(1, INPUT);
   pinMode(2, INPUT);
-  pinMode(4, INPUT);
+  pinMode(3, INPUT);
 }
