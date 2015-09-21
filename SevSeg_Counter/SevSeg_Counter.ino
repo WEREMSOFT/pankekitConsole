@@ -1,3 +1,5 @@
+
+
 /* SevSeg Counter Example
  
  Copyright 2014 Dean Reading
@@ -19,6 +21,7 @@
  */
 
 #include "SevSeg.h"
+#include "Bounce2.h"
 
 SevSeg sevseg; //Instantiate a seven segment controller object
 
@@ -29,8 +32,8 @@ static const unsigned int STATE_LAP = 3;
 
 unsigned int state = STATE_READY;
 
-byte button_start_stop = A0;
-byte button_lap_reset = A1;
+byte button_start_stop_pin = A0;
+byte button_lap_reset_pin = A1;
   
 static unsigned long timer = millis();
 static unsigned long timerPaused = millis();
@@ -38,20 +41,31 @@ static unsigned long elapsedTimeInMiliseconds = 0;
 static unsigned long timeToShowMinutes = 0;
 static unsigned long timeToShowSeconds = 0;
 static unsigned long timeToShowDecSeconds = 0;
-bool just_pressed_start = false;
-bool just_pressed_reset = false;
+
+boolean justPressedReset = false;
+boolean justPressedStart = false;
+
+Bounce button_start_stop = Bounce(); 
+
+// Instantiate another Bounce object
+Bounce button_lap_reset = Bounce(); 
+
   
 void setup() {
   byte numDigits = 6;   
   byte digitPins[] = {5, 4, 3, 2, 1, 0};
   byte segmentPins[] = {6, 7, 8, 9, 10, 11, 12, 13};
 
-  pinMode(button_start_stop, INPUT);  // button pins are inputs
-  digitalWrite(button_start_stop, HIGH);  // enable internal pullup; buttons start in high position; logic reversed
+  pinMode(button_start_stop_pin,INPUT_PULLUP);  // button pins are inputs
+  // enable internal pullup; buttons start in high position; logic reversed
+  button_start_stop.attach(button_start_stop_pin);
+  button_start_stop.interval(100); // interval in ms
   
-  pinMode(button_lap_reset, INPUT);  // button pins are inputs
-  digitalWrite(button_lap_reset, HIGH);  // enable internal pullup; buttons start in high position; logic reversed
-
+  pinMode(button_lap_reset_pin,INPUT_PULLUP);  // button pins are inputs
+  // enable internal pullup; buttons start in high position; logic reversed
+  button_lap_reset.attach(button_lap_reset_pin);
+  button_lap_reset.interval(100); // interval in ms
+  
   sevseg.begin(COMMON_ANODE, numDigits, digitPins, segmentPins);
   sevseg.setBrightness(100);
 
@@ -60,27 +74,34 @@ void setup() {
 
 bool checkButtonStartClick()
 {
-  if(digitalRead(button_start_stop) == LOW && !just_pressed_start)
+  button_start_stop.update();
+  int value = button_start_stop.read();
+
+  // Turn on the LED if either button is pressed :
+ if ( value == LOW && !justPressedStart)
   {
-    just_pressed_start = true;
+    justPressedStart = true;
     return true;
   }else
   {
-    just_pressed_start = false;
+    justPressedStart = false;
     return false;
   }
- 
 }
 
 boolean checkButtonResetClick()
 {
-  if(digitalRead(button_lap_reset) == LOW && !just_pressed_reset)
+   button_lap_reset.update();
+  int value = button_lap_reset.read();
+
+  // Turn on the LED if either button is pressed :
+  if ( value == LOW && !justPressedReset)
   {
-    just_pressed_reset = true;
+    justPressedReset = true;
     return true;
   }else
   {
-    just_pressed_reset = false;
+    justPressedReset = false;
     return false;
   }
 }
@@ -124,7 +145,7 @@ void processStatePaused()
 {
   if(checkButtonStartClick())
   {
-    timer =+ millis() - timerPaused;
+    timer += millis() - timerPaused;
     passToStateRunningNoReset();
   }
   if(checkButtonResetClick())
