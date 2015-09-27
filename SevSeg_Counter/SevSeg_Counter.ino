@@ -43,8 +43,18 @@ bool just_pressed_reset = false;
   
 void setup() {
   byte numDigits = 6;   
-  byte digitPins[] = {5, 4, 3, 2, 1, 0};
-  byte segmentPins[] = {6, 7, 8, 9, 10, 11, 12, 13};
+  byte digitPins[] = {0, 1, 2, 3, 4, 5};
+  //                    a  b  c  d   e   f   g
+  byte segmentPins[] = {6, 7, 8, 9, 11, 10, 12, 13};
+/*
+a 6
+b 10
+c 11
+d 9
+e 8
+f 7
+g 12
+  */
 
   pinMode(button_start_stop, INPUT);  // button pins are inputs
   digitalWrite(button_start_stop, HIGH);  // enable internal pullup; buttons start in high position; logic reversed
@@ -58,31 +68,34 @@ void setup() {
   passToStateReady();
 }
 
+int lastStateStart = LOW;
+
 bool checkButtonStartClick()
 {
-  if(digitalRead(button_start_stop) == LOW && !just_pressed_start)
+  int dRead = digitalRead(button_start_stop);
+  bool returnValue = false;
+  if(dRead == HIGH && lastStateStart==LOW)
   {
-    just_pressed_start = true;
-    return true;
-  }else
-  {
-    just_pressed_start = false;
-    return false;
+    returnValue = true;
   }
- 
+  
+  lastStateStart = dRead;
+  return returnValue;
 }
+
+int lastStateStop = LOW;
 
 boolean checkButtonResetClick()
 {
-  if(digitalRead(button_lap_reset) == LOW && !just_pressed_reset)
+  int dRead = digitalRead(button_lap_reset);
+  bool returnValue = false;
+  if(dRead == HIGH && lastStateStop == LOW)
   {
-    just_pressed_reset = true;
-    return true;
-  }else
-  {
-    just_pressed_reset = false;
-    return false;
+    returnValue = true;
   }
+  
+  lastStateStop = dRead;
+  return returnValue;
 }
 
 void loop() {
@@ -125,7 +138,7 @@ void processStatePaused()
   if(checkButtonStartClick())
   {
     timer =+ millis() - timerPaused;
-    passToStateRunningNoReset();
+    passToStateRunning();
   }
   if(checkButtonResetClick())
   {
@@ -141,6 +154,7 @@ void passToStateRunningNoReset()
 void passToStateReady()
 {
   state = STATE_READY;
+  timerPaused = 0;
   elapsedTimeInMiliseconds = 0;
   timeToShowMinutes = 0;
   timeToShowSeconds = 0;
@@ -159,6 +173,7 @@ void processStateReady()
 void passToStateRunning()
 {
   state = STATE_RUNNING;
+  timerPaused = 0;
   timer = millis();
   elapsedTimeInMiliseconds = 0;
   timeToShowMinutes = 0;
@@ -186,7 +201,7 @@ void processStateRunning()
 void updateDisplay()
 {
   sevseg.setNumber(timeToShowMinutes + timeToShowSeconds + timeToShowDecSeconds, 1);
- // sevseg.setNumber(123456, 1);
+  //sevseg.setNumber(123456, 1);
   
   sevseg.refreshDisplay(); // Must run repeatedly
 }
